@@ -20,7 +20,15 @@ Kotlin é uma linguagem de programação moderna, **concisa**, **segura** e **in
   - [7- Arrays e Listas](#7--arrays-e-listas)
   - [8- Sets e Maps](#8--sets-e-maps)
   - [9 - Laços de Repetição](#9---laços-de-repetição)
+  - [10 - Funções em Kotlin (Avançado)](#10---funções-em-kotlin-avançado)
+- [11 - Classes em Kotlin (Avançado)](#11---classes-em-kotlin-avançado)
+    - [🔹 Criando Classes](#-criando-classes)
+    - [🔹 Buscas e Atribuições Personalizadas](#-buscas-e-atribuições-personalizadas)
+    - [🔹 Objetos Complementares (companion object)](#-objetos-complementares-companion-object)
+    - [🔹 Classes Abertas e Herança](#-classes-abertas-e-herança)
+    - [🔹 Classes de Dados (data class)](#-classes-de-dados-data-class)
 
+    
 ## Principais Vantagens  
 
 - ✅ **Interoperabilidade com Java**
@@ -579,4 +587,229 @@ repeat(5) {
 > Use `for` para listas, `while` para condições, `do/while` para garantir execução e `repeat` para repetições simples.
 
 ---
+### 10 - Funções em Kotlin (Avançado)
 
+Kotlin oferece uma abordagem moderna e poderosa para declarar e usar funções, incluindo suporte nativo para funções anônimas, de ordem superior, extensões e infix.
+
+---
+
+#### 🔹 Funções Anônimas
+
+São funções **sem nome explícito**, atribuídas geralmente a variáveis. Podem ser usadas diretamente como expressões.
+
+```kotlin
+fun main() {
+    var sum = 2 + 2
+
+    val funSum = { a: Int, b: Int ->
+        sum = 100
+        a + b
+    }
+
+    println(funSum(1, 2))  // imprime 3
+    println(sum)           // imprime 100
+}
+```
+
+---
+
+#### 🔹 Funções de Ordem Superior
+
+São funções que **recebem ou retornam outras funções**. Ideais para implementar lógica reutilizável.
+
+```kotlin
+fun sum(a: Int, b: Int) = a + b
+fun subtract(a: Int, b: Int) = a - b
+fun multiply(a: Int, b: Int) = a * b
+
+fun mathOperation(a: Int, b: Int, op: (Int, Int) -> Int): Int {
+    return op(a, b)
+}
+
+fun main() {
+    val divide = { a: Int, b: Int -> a / b }
+
+    println(mathOperation(10, 5, ::sum))       // 15
+    println(mathOperation(10, 5, ::subtract))  // 5
+    println(mathOperation(10, 5, ::multiply))  // 50
+    println(mathOperation(10, 5, divide))      // 2
+}
+```
+
+---
+
+#### 🔹 Funções de Extensão
+
+Permitem **adicionar funcionalidades a tipos existentes** sem modificá-los diretamente.
+
+```kotlin
+fun String.isPalindrome(): Boolean {
+    return this == this.reversed()
+}
+
+fun Double.format(decimalDigits: Int): String {
+    return "%.${decimalDigits}f".format(this)
+}
+
+fun main() {
+    println("radar".isPalindrome())     // true
+    println("banana".isPalindrome())    // false
+    println(3.14159.format(2))          // "3.14"
+}
+```
+
+---
+
+#### 🔹 Funções Infix
+
+Permitem usar chamadas de função como **operações naturais**, sem parênteses ou ponto.
+
+```kotlin
+infix fun Int.sum(num: Int): Int = this + num
+
+class XY(val x: Int, val y: Int) {
+    infix fun sum(other: XY): XY {
+        return XY(this.x + other.x, this.y + other.y)
+    }
+}
+
+fun main() {
+    println(2 sum 2) // 4
+
+    val xy = XY(3, 2) sum XY(2, 2)
+    println("x: ${xy.x}, y: ${xy.y}") // x: 5, y: 4
+}
+```
+
+---
+
+### 🧠 Resumo Rápido
+
+| Tipo de Função     | Descrição                                       | Exemplo                          |
+|--------------------|--------------------------------------------------|----------------------------------|
+| Anônima            | Sem nome, atribuída a uma variável               | `{ a, b -> a + b }`              |
+| Ordem Superior     | Recebe/retorna outra função                      | `mathOperation(a, b, ::soma)`    |
+| Extensão           | Adiciona funções a tipos existentes              | `"texto".isPalindrome()`         |
+| Infix              | Chamadas de função mais naturais/sintéticas      | `2 sum 2`                        |
+---
+
+
+## 11 - Criando Classes
+
+Kotlin permite a criação de classes com construtores simples, propriedades e lógica encapsulada.
+
+---
+
+#### 🔹 Declaração Básica
+
+```kotlin
+class Person(val name: String = "Desconhecido", lastName: String, val age: Int = 0) {
+
+    val fullName: String = "$name $lastName"
+
+    private val password: String = name + Random.nextInt(100)
+
+    private fun usePassword() {
+        println(password)
+    }
+
+    fun work() {
+        usePassword()
+        println("$name, $age trabalhando...")
+    }
+}
+
+fun main() {
+    val jose = Person(name = "José", lastName = "Silva", age = 20)
+    val maria = Person(name = "Maria", lastName = "Rodrigues")
+
+    jose.work()
+    maria.work()
+    println(jose.fullName)
+}
+```
+
+---
+
+### 12 - Buscas e Atribuições Personalizadas
+
+Kotlin permite personalizar o comportamento de leitura (`get`) e escrita (`set`) de propriedades.
+
+```kotlin
+class Person(val name: String) {
+
+    var age: Int = 0
+        set(value) {
+            if (value >= 0) field = value
+            else println("Idade não pode ser negativa")
+        }
+
+    var height: Double = 0.0
+        get() = Math.ceil(field)
+}
+```
+
+---
+
+### 13 - Objetos Complementares
+
+Objetos `companion object` permitem declarar membros que pertencem à classe, como se fossem `static`.
+
+```kotlin
+class Person {
+    companion object {
+        const val KEY = "12345678"
+        private val KEY_2 = "1234567890"
+
+        fun getKey(): String {
+            return KEY + KEY_2
+        }
+    }
+}
+```
+
+---
+
+### 14 - Classes Abertas
+
+Classes podem ser estendidas usando `open`, e membros também devem ser `open` para sobrescrita.
+
+```kotlin
+open class Animal(val name: String) {
+    open val age: Int = 0
+
+    open fun sound() {
+        println("$name: som")
+    }
+}
+
+class Dog(override val age: Int) : Animal(name = "Cachorro") {
+    override fun sound() {
+        println("$name: AU!")
+    }
+}
+```
+
+---
+
+### 15 - Classes de Dados
+
+Data classes são ideais para representar dados imutáveis e já trazem `equals`, `toString`, `copy` e destructuring.
+
+```kotlin
+data class UserDataClass(val name: String, val age: Int)
+
+fun main() {
+    val jose = UserDataClass("José", 30)
+    val maria = UserDataClass("Maria", 40)
+
+    val copyMaria = maria.copy(age = 50)
+    println(copyMaria)
+
+    val (name, age) = jose
+    println(name)
+    println(age)
+}
+```
+
+---
